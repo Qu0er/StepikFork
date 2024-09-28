@@ -1,11 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, make_response 
 import sqlite3
 import json
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
-# Загружаем курсы и вопросы из JSON
+
 with open('courses.json', 'r', encoding='utf-8') as f:
     courses_data = json.load(f)
 
@@ -43,7 +43,12 @@ def login():
 
         if user:
             session['username'] = username
-            return redirect(url_for('index'))
+            print("Make request!")
+            resp = make_response(redirect('/'))
+            resp.set_cookie("username", username, max_age=60*60*24*365*2)
+            resp.set_cookie("progress", str([0,0,0,0]), max_age=60*60*24*365*2)
+            # return redirect(url_for('index'))
+            return resp
         else:
             return "Неверный логин или пароль"
 
@@ -67,7 +72,33 @@ def register():
 
 @app.route("/lesson/<number>/<coursename>")
 def lesson(number,coursename):
-    return render_template("lesson.html", lesson_name=f"Урок: {number}", course_name=f"Курс: {coursename}", youtube_video_id="n0xtO0x81cg?si=2_9a4LL6pmk7DAtj")
+    progress = request.cookies.get("progress")
+    print(progress)
+    progress = progress[1:]
+    progress = progress[:-1]
+    progress = progress.split(",")
+    return render_template("lesson.html", lesson_name=f"Урок: {number}", course_name=f"Курс: {coursename}", youtube_video_id="n0xtO0x81cg?si=2_9a4LL6pmk7DAtj", name=coursename)
+
+@app.route("/redirect/<name>")
+def test(name):
+    dict_ = {"python": 0,
+            'c++': 1,
+            "go": 2,
+            "rust": 3}
+    progress = request.cookies.get("progress")
+    progress = progress[1:]
+    progress = progress[:-1]
+    progress = progress.split(",")
+    
+    temp = name
+    name = name.lower()
+    progress[int(dict_[name])] = int(progress[int(dict_[name])]) + 1
+    print(progress)
+    resp = make_response(redirect(f"/lesson/{progress[dict_[name]]}/{temp}"))
+    resp.set_cookie("progress", "0",max_age=0)
+    resp.set_cookie("progress", str(progress), max_age=60*60*24*365*2)
+    return resp
+
 
 @app.route('/logout')
 def logout():

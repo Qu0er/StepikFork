@@ -44,7 +44,8 @@
             .LessonName {
                 font-size: 1.5rem;
             }
-
+    
+        
 
 
     </style>
@@ -54,6 +55,15 @@
         <h1 class="CourseName">{{ course_name }}</h1>
         <h1 class="LessonName">{{ lesson_name }}</h1>
         <iframe src="https://www.youtube.com/embed/{{ youtube_video_id }}" allowfullscreen></iframe>
+        <a href="/redirect/{{  name  }}">
+        <button class="NextLesson" style="
+            border-radius: 10px;
+            width: 111px;
+            height: 40px;
+        
+            "
+            >Следующий урок</button>
+        </a>
     </div>
 </body>
 </html>
